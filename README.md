@@ -379,3 +379,4 @@ The backend listens on port `3000`; Vite uses port `5173` by default. Stop the p
 - Restrict access to generated reports and uploaded resume data. Reports contain personal information and extracted resume text.
 - Review the authorization behavior for every report-related endpoint before exposing the service publicly.
 - The backend currently listens on a fixed port and the frontend API base URL/CORS origin are hard-coded; make these configurable as part of a production deployment.
+# PrepPilot-AI
