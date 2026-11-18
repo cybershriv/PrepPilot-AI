@@ -7,9 +7,12 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: "https://prep-pilot-ai-blond.vercel.app",
+    origin: [
+        process.env.FRONTEND_URL,
+        "http://localhost:5173"
+    ].filter(Boolean),
     credentials: true
-}))
+}));
 
 
 /* require all the routes here */
