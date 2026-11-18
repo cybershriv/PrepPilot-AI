@@ -9,11 +9,17 @@ export default function Register() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await handleRegister({ username, email, password })
-    navigate('/')
+    setAuthError('')
+    try {
+      await handleRegister({ username, email, password })
+      navigate('/')
+    } catch (error) {
+      setAuthError(error.response?.data?.message || 'Registration failed. Please try again.')
+    }
   }
 
   if (loading) {
@@ -56,6 +62,7 @@ export default function Register() {
               placeholder="Enter password"
             />
           </div>
+          {authError && <p className="form-error" role="alert">{authError}</p>}
           <button className="button primary-button" type="submit">Register</button>
         </form>
         <p>Already have an account? <Link to="/login">Login</Link></p>

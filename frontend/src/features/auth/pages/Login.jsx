@@ -8,11 +8,17 @@ export default function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [authError, setAuthError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await handleLogin({ email, password })
-    navigate('/')
+    setAuthError('')
+    try {
+      await handleLogin({ email, password })
+      navigate('/')
+    } catch (error) {
+      setAuthError(error.response?.data?.message || 'Login failed. Please try again.')
+    }
   }
 
   if (loading) {
@@ -45,6 +51,7 @@ export default function Login() {
               placeholder="Enter password"
             />
           </div>
+          {authError && <p className="form-error" role="alert">{authError}</p>}
           <button className="button primary-button" type="submit">Login</button>
         </form>
         <p>Don't have an account? <Link to="/register">Register</Link></p>

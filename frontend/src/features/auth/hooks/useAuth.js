@@ -13,9 +13,9 @@ const useAuth = () =>{
         try{
             const data = await login({email,password})
             setUser(data.user)
-
+            return data
         }catch(err){
-            console.log(err)
+            throw err
         } finally{
             setLoading(false)
         }
@@ -26,9 +26,9 @@ const useAuth = () =>{
         try{
             const data = await register({username,email,password})
             setUser(data.user)
-
+            return data
         }catch(err){
-            console.log(err)
+            throw err
         }finally{
             setLoading(false)
         }
@@ -39,9 +39,9 @@ const useAuth = () =>{
         try{
             const data = await logout()
             setUser(null)
-
+            return data
         }catch(err){
-            console.log(err)
+            throw err
         } finally{
             setLoading(false)
         }
@@ -55,7 +55,10 @@ const useAuth = () =>{
                 setUser(data.user)
                 
             }catch(err){
-                console.log(err)
+                setUser(null)
+                if (err.response?.status !== 401) {
+                    console.error(err)
+                }
             } finally{
                 setLoading(false)
             }

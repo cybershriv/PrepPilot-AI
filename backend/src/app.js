@@ -4,10 +4,15 @@ const cors = require("cors")
 
 const app = express()
 
+const allowedOrigins = [
+    process.env.FRONTEND_URL || "https://prep-pilot-ai-89pp.vercel.app",
+    "http://localhost:5173"
+]
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: "https://prep-pilot-ai-89pp.vercel.app",
+    origin: allowedOrigins,
     credentials: true
 }))
 

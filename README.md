@@ -107,6 +107,7 @@ Create `backend/.env` and set the following variables:
 MONGO_URI=mongodb://127.0.0.1:27017/genai_interview
 JWT_SECRET=replace-with-a-long-random-secret
 GOOGLE_GENAI_API_KEY=replace-with-your-google-genai-api-key
+FRONTEND_URL=https://prep-pilot-ai-89pp.vercel.app
 ```
 
 | Variable | Required | Purpose |
@@ -114,15 +115,16 @@ GOOGLE_GENAI_API_KEY=replace-with-your-google-genai-api-key
 | `MONGO_URI` | Yes | MongoDB connection string used by Mongoose. |
 | `JWT_SECRET` | Yes | Secret used to sign and verify authentication tokens. |
 | `GOOGLE_GENAI_API_KEY` | Yes | API key used by the Google GenAI SDK. |
+| `FRONTEND_URL` | No | Frontend origin allowed by CORS; defaults to the deployed Vercel URL in the example. |
 
 The backend loads `.env` from the backend working directory through `dotenv` in `server.js`. Copy `backend/.env.example` to `backend/.env` and replace its placeholders with local values. Do not put real credentials in source code, screenshots, or commits.
 
-The frontend API base URL is currently hard-coded as `http://localhost:3000` in:
+Set `VITE_API_URL` in the frontend deployment environment to the backend API origin (for example, `https://preppilot-ai-b9k0.onrender.com`). The frontend API base URL falls back to `http://localhost:3000` for local development:
 
 - [frontend/src/features/auth/services/auth.api.js](frontend/src/features/auth/services/auth.api.js)
 - [frontend/src/features/interview/services/interview.api.js](frontend/src/features/interview/services/interview.api.js)
 
-The backend CORS configuration currently allows `http://localhost:5173` with credentials. If either development server is moved to another host or port, update the API base URLs and backend CORS origin together.
+The backend allows the configured `FRONTEND_URL` and `http://localhost:5173` with credentials. Set `NODE_ENV=production` in the backend deployment so its authentication cookie is issued with `HttpOnly`, `Secure`, and `SameSite=None` attributes, which are required for cross-site requests from Vercel to Render.
 
 ## Installation and development
 
@@ -192,7 +194,7 @@ Vite serves the application at `http://localhost:5173` by default. Keep both dev
 1. The frontend submits registration or login credentials to the backend.
 2. The backend hashes registration passwords with bcrypt and issues a JWT after successful registration or login.
 3. The JWT is sent in a cookie named `token`.
-4. The frontend Axios clients use `withCredentials: true`; the backend CORS configuration permits credentials from the configured frontend origin.
+4. The frontend Axios clients use `withCredentials: true`; the backend CORS configuration permits credentials from the configured frontend origin. In production, the cookie uses `HttpOnly`, `Secure`, and `SameSite=None` so browsers can send it across the Vercel/Render origins.
 5. On application startup, the auth hook requests `/api/auth/get-me` to restore the current user.
 6. Protected routes redirect unauthenticated users to `/login`.
 7. Logout blacklists the current token in MongoDB and clears the cookie.
@@ -343,9 +345,9 @@ The backend package currently has a placeholder `test` script that exits with â€
 
 ## Troubleshooting
 
-### `401 Unauthorized` from `/api/auth/get-me`
+### `401 Unauthorized` from `/api/auth/get-me` or `/api/interview`
 
-This endpoint is protected. Register or sign in first. If it still returns `401` after login, confirm that the browser accepted the `token` cookie and sends it with requests. Check that the frontend origin matches the CORS origin in `backend/src/app.js`.
+These endpoints require the `token` cookie. If they return `401` after login, confirm the backend is deployed with `NODE_ENV=production`, the browser accepted and sends the cookie, `VITE_API_URL` points to the Render API, and `FRONTEND_URL` exactly matches the Vercel origin. Axios requests must keep `withCredentials: true`.
 
 ### `400` when generating a report
 
@@ -375,7 +377,7 @@ The backend listens on port `3000`; Vite uses port `5173` by default. Stop the p
 
 - Keep `.env`, API keys, JWT secrets, cookie jars, and user data out of source control.
 - Use a strong, unique `JWT_SECRET` outside local development.
-- The current configuration is intended for local development. Before deployment, configure production origins, HTTPS, secure and HTTP-only cookie attributes, CSRF protections, secret management, request logging, rate limits, and database access controls.
+- The authentication cookie is HTTP-only; production also enables `Secure` and `SameSite=None` for cross-site Vercel-to-Render requests. Before deployment, configure production origins, HTTPS, CSRF protections, secret management, request logging, rate limits, and database access controls.
 - Restrict access to generated reports and uploaded resume data. Reports contain personal information and extracted resume text.
 - Review the authorization behavior for every report-related endpoint before exposing the service publicly.
 - The backend currently listens on a fixed port and the frontend API base URL/CORS origin are hard-coded; make these configurable as part of a production deployment.
